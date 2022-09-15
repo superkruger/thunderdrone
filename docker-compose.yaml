@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  thunderdrone-app:
+    build: ./
+    container_name: thunderdrone-app
+    ports:
+      - "8080:8080"
+    restart: always
+
+  thunderdrone-ui:
+    build: ./web
+    container_name: thunderdrone-web
+    ports:
+      - "3000:3000"
+    restart: always
+    links:
+      - thunderdrone-app
+
