@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -35,12 +36,24 @@ var channels = []channel{
 }
 
 func main() {
-	fmt.Println("Thunderdrone starting")
+	fmt.Println("Thunderdrone starting...")
 	router := gin.Default()
+	applyCors(router)
+
 	router.GET("/nodes", getNodes)
 	router.GET("/channels", getChannels)
 
-	router.Run("localhost:8080")
+	fmt.Println("Listening on port 8080")
+
+	router.Run(":8080")
+}
+
+func applyCors(r *gin.Engine) {
+	corsConfig := cors.DefaultConfig()
+	//hot reload CORS
+	corsConfig.AllowOrigins = []string{"http://localhost:3000"}
+	corsConfig.AllowCredentials = true
+	r.Use(cors.New(corsConfig))
 }
 
 func getNodes(c *gin.Context) {
