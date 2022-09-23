@@ -5,6 +5,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"thunderdrone/lnd"
 )
 
 // node represents data about a lightning node.
@@ -40,12 +41,40 @@ func main() {
 	router := gin.Default()
 	applyCors(router)
 
+	router.POST("/lndtls", postLndTls)
+	router.POST("/lndmacaroon", postLndMacaroon)
 	router.GET("/nodes", getNodes)
 	router.GET("/channels", getChannels)
+
+	lnd.Start()
+
+	fmt.Println("lnd done.")
 
 	fmt.Println("Listening on port 8080")
 
 	router.Run(":8080")
+}
+
+func migrateDb() {
+	//db, err := database.PgConnect(c.String("db.name"), c.String("db.user"),
+	//	c.String("db.password"), c.String("db.host"), c.String("db.port"))
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//defer func() {
+	//	cerr := db.Close()
+	//	if err == nil {
+	//		err = cerr
+	//	}
+	//}()
+	//
+	//err = database.MigrateUp(db)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//return nil
 }
 
 func applyCors(r *gin.Engine) {
@@ -54,6 +83,32 @@ func applyCors(r *gin.Engine) {
 	corsConfig.AllowOrigins = []string{"http://localhost:3000"}
 	corsConfig.AllowCredentials = true
 	r.Use(cors.New(corsConfig))
+}
+
+func postLndTls(c *gin.Context) {
+	fileHeader, err := c.FormFile("tls")
+	if err != nil {
+		c.Error(fmt.Errorf("could not handle TLS file POST: %v", err))
+		return
+	}
+
+	_, err = fileHeader.Open()
+	if err != nil {
+		c.Error(fmt.Errorf("could not open TLS file: %v", err))
+		return
+	}
+
+	data := map[string]interface{}{
+		"fileName": fileHeader.Filename,
+		"header":   fileHeader.Header,
+		"size":     fileHeader.Size,
+	}
+
+	c.IndentedJSON(http.StatusCreated, data)
+}
+
+func postLndMacaroon(c *gin.Context) {
+
 }
 
 func getNodes(c *gin.Context) {

@@ -1,18 +1,36 @@
 version: "3"
 
+networks:
+  docker_lnnet:
+    external: true
+
+volumes:
+  thunderdrone_db:
+
 services:
   thunderdrone-app:
     build: ./
     container_name: thunderdrone-app
+    networks:
+      - docker_lnnet
     ports:
-      - "8080:8080"
+      - "8081:8080"
     restart: always
 
   thunderdrone-ui:
     build: ./web
     container_name: thunderdrone-web
+    networks:
+      - docker_lnnet
     ports:
       - "3000:3000"
     restart: always
     links:
       - thunderdrone-app
+      -
+  thunderdrone-db:
+    image: "timescale/timescaledb:latest-pg14"
+    environment:
+      POSTGRES_PASSWORD: "password"
+    volumes:
+      -   thunderdrone_db:/var/lib/postgresql/data

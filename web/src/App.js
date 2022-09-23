@@ -24,6 +24,7 @@ function App() {
             <h1>Thunderdrone dashboard</h1>
           </header>
           <main>
+              <MacaroonInput/>
               {
                   nodes.map(node => {
                       return (
@@ -40,6 +41,16 @@ function App() {
           </footer>
         </div>
     );
+}
+
+function MacaroonInput() {
+
+    return (
+        <div>
+
+            <input type="file"/>
+        </div>
+    )
 }
 
 export default App;
