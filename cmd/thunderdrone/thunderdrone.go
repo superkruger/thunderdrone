@@ -5,7 +5,6 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"thunderdrone/lnd"
 )
 
 // node represents data about a lightning node.
@@ -46,7 +45,7 @@ func main() {
 	router.GET("/nodes", getNodes)
 	router.GET("/channels", getChannels)
 
-	lnd.Start()
+	//lnd.Start()
 
 	fmt.Println("lnd done.")
 

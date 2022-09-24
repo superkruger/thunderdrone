@@ -10,9 +10,9 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/golang-migrate/migrate/v4/source/httpfs"
 	"github.com/jmoiron/sqlx"
+	"github.com/superkruger/thunderdrone/database/migrations"
 	"log"
 	"net/http"
-	"thunderdrone/database/migrations"
 )
 
 // newMigrationInstance fetches sql files and creates a new migration instance.

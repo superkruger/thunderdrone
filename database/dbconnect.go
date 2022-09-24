@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/cockroachdb/errors"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 	"log"
 )
 
