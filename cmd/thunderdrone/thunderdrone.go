@@ -4,7 +4,11 @@ import (
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/superkruger/thunderdrone/database"
+	"log"
 	"net/http"
+	"os"
+	"time"
 )
 
 // node represents data about a lightning node.
@@ -36,14 +40,20 @@ var channels = []channel{
 }
 
 func main() {
-	fmt.Println("Thunderdrone starting...")
+	log.Println("Thunderdrone starting...")
 	router := gin.Default()
 	applyCors(router)
 
-	router.POST("/lndtls", postLndTls)
-	router.POST("/lndmacaroon", postLndMacaroon)
+	router.POST("/nodesettings", handleNodeSettings)
 	router.GET("/nodes", getNodes)
 	router.GET("/channels", getChannels)
+
+	time.Sleep(10 * time.Second)
+
+	err := migrateDb("thunderdrone_db", "thunderdrone", "password", "thunderdrone-db", "5432")
+	if err != nil {
+		log.Println(err)
+	}
 
 	//lnd.Start()
 
@@ -51,29 +61,33 @@ func main() {
 
 	fmt.Println("Listening on port 8080")
 
-	router.Run(":8080")
+	err = router.Run(":8080")
+	if err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
 }
 
-func migrateDb() {
-	//db, err := database.PgConnect(c.String("db.name"), c.String("db.user"),
-	//	c.String("db.password"), c.String("db.host"), c.String("db.port"))
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//defer func() {
-	//	cerr := db.Close()
-	//	if err == nil {
-	//		err = cerr
-	//	}
-	//}()
-	//
-	//err = database.MigrateUp(db)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//return nil
+func migrateDb(dbName, user, password, host, port string) error {
+
+	db, err := database.PgConnect(dbName, user, password, host, port)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		cerr := db.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
+
+	err = database.MigrateUp(db)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func applyCors(r *gin.Engine) {
@@ -84,17 +98,43 @@ func applyCors(r *gin.Engine) {
 	r.Use(cors.New(corsConfig))
 }
 
-func postLndTls(c *gin.Context) {
-	fileHeader, err := c.FormFile("tls")
+func handleNodeSettings(c *gin.Context) {
+	certificateData, err := extractFile("certificate", c)
 	if err != nil {
 		c.Error(fmt.Errorf("could not handle TLS file POST: %v", err))
 		return
 	}
 
+	macaroonData, err := extractFile("macaroon", c)
+	if err != nil {
+		c.Error(fmt.Errorf("could not handle TLS file POST: %v", err))
+		return
+	}
+
+	grpcUrl := c.PostForm("grpcUrl")
+
+	data := map[string]map[string]interface{}{
+		"certificate": certificateData,
+		"macaroon":    macaroonData,
+		"grpcUrl": {
+			"value": grpcUrl,
+		},
+	}
+
+	c.IndentedJSON(http.StatusCreated, data)
+}
+
+func extractFile(fileKey string, c *gin.Context) (map[string]interface{}, error) {
+	fileHeader, err := c.FormFile(fileKey)
+	if err != nil {
+		c.Error(fmt.Errorf("could not handle file (%v) POST: %v", fileKey, err))
+		return nil, err
+	}
+
 	_, err = fileHeader.Open()
 	if err != nil {
 		c.Error(fmt.Errorf("could not open TLS file: %v", err))
-		return
+		return nil, err
 	}
 
 	data := map[string]interface{}{
@@ -102,12 +142,7 @@ func postLndTls(c *gin.Context) {
 		"header":   fileHeader.Header,
 		"size":     fileHeader.Size,
 	}
-
-	c.IndentedJSON(http.StatusCreated, data)
-}
-
-func postLndMacaroon(c *gin.Context) {
-
+	return data, nil
 }
 
 func getNodes(c *gin.Context) {

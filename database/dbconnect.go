@@ -9,6 +9,7 @@ import (
 )
 
 func PgConnect(dbName, user, password, host, port string) (db *sqlx.DB, err error) {
+	log.Println("Connecting to DB")
 	defaultDB, err := sqlx.Connect("postgres",
 		fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=disable", "postgres", password, host, port, "postgres"))
 	if err != nil {

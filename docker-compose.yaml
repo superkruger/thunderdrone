@@ -2,7 +2,7 @@ version: "3"
 
 networks:
   docker_lnnet:
-    external: true
+    #external: true
 
 volumes:
   thunderdrone_db:
@@ -14,8 +14,10 @@ services:
     networks:
       - docker_lnnet
     ports:
-      - "8081:8080"
-    restart: always
+      - "8080:8080"
+    depends_on:
+      - "thunderdrone-db"
+    command: ["./wait-for-it.sh", "thunderdrone-db:5432", "--", "echo", "database is up!"]
 
   thunderdrone-ui:
     build: ./web
@@ -24,13 +26,18 @@ services:
       - docker_lnnet
     ports:
       - "3000:3000"
-    restart: always
-    links:
-      - thunderdrone-app
-      -
+    volumes:
+      - ./web:/app:delegated
+      - /app/node_modules
+    environment:
+      - WATCHPACK_POLLING=true
+    depends_on:
+      - "thunderdrone-app"
   thunderdrone-db:
     image: "timescale/timescaledb:latest-pg14"
     environment:
       POSTGRES_PASSWORD: "password"
+    networks:
+      - docker_lnnet
     volumes:
       -   thunderdrone_db:/var/lib/postgresql/data
