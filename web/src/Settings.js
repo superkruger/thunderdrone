@@ -7,15 +7,16 @@ export default function Settings(props) {
     const [certificate, setCertificate] = useState()
     const [macaroon, setMacaroon] = useState()
     const [grpcUrl, setGrpcUrl] = useState()
-    const {postFiles, loading} = useFetch("http://localhost:8080/")
+    const {postFiles, loading} = useFetch("http://localhost:8080/api/")
 
     function handleFormSubmit(e) {
         e.preventDefault()
 
         const formData = new FormData();
-        formData.append("certificate", certificate);
-        formData.append("macaroon", macaroon);
-        formData.append("grpcUrl", grpcUrl);
+        formData.append("implementation", "LND");
+        formData.append("tlsFile", certificate);
+        formData.append("macaroonFile", macaroon);
+        formData.append("grpcAddress", grpcUrl);
 
         postFiles("nodesettings", formData)
             .then(r => console.log(r))
@@ -39,7 +40,7 @@ export default function Settings(props) {
             <p>
                 Supply the necessary LND connection details
             </p>
-            <Input placeholder="Certificate" type="file" required onChange={handleCertificateChanged}/>
+            <Input placeholder="TLS Certificate" type="file" required onChange={handleCertificateChanged}/>
             <Input placeholder="Macaroon" type="file" required onChange={handleMacaroonChanged}/>
             <Input placeholder="GRPC Url (host:port)" type="text" required onChange={handleGrpcUrlChanged}/>
             <Button type="submit">Save</Button>

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/jmoiron/sqlx"
 	"github.com/lightningnetwork/lnd/lnrpc"
 	"github.com/lightningnetwork/lnd/macaroons"
 	"google.golang.org/grpc"
@@ -15,7 +16,7 @@ import (
 	"time"
 )
 
-func Start() error {
+func Start(ctx context.Context, db *sqlx.DB) error {
 
 	grpclog.SetLoggerV2(grpclog.NewLoggerV2(info, warn, err))
 
@@ -62,7 +63,7 @@ func Start() error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer cancel()
 
-	conn, err := grpc.DialContext(ctx, "Alice:10009", opts...) //grpc.Dial("localhost:10009", opts...)
+	conn, err := grpc.DialContext(ctx, "Alice:10009", opts...)
 	if err != nil {
 		fmt.Println("cannot dial to lnd", err)
 		return err

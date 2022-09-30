@@ -5,25 +5,27 @@ import (
 	"fmt"
 	"github.com/cockroachdb/errors"
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"github.com/golang-migrate/migrate/v4/source/httpfs"
 	"github.com/jmoiron/sqlx"
-	"github.com/superkruger/thunderdrone/database/migrations"
 	"log"
-	"net/http"
 )
 
 // newMigrationInstance fetches sql files and creates a new migration instance.
 func newMigrationInstance(db *sql.DB) (*migrate.Migrate, error) {
-	sourceInstance, err := httpfs.New(http.FS(migrations.MigrationFiles), ".")
-	if err != nil {
-		return nil, fmt.Errorf("invalid source instance, %w", err)
-	}
 
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
-	m, err := migrate.NewWithInstance("httpfs", sourceInstance, "postgres", driver)
+	m, err := migrate.New(
+		"file://database/migrations",
+		"postgres://thunderdrone:password@thunderdrone-db:5432/thunderdrone_db?sslmode=disable")
+
+	//sourceInstance, err := httpfs.New(file.File{}("/app/database/migrations"), ".")
+	//sourceInstance, err := httpfs.New(http.FS(migrations.MigrationFiles), "/app/database/migrations")
+	//if err != nil {
+	//	return nil, fmt.Errorf("invalid source instance, %w", err)
+	//}
+
+	//driver, err := postgres.WithInstance(db, &postgres.Config{})
+	//m, err := migrate.NewWithInstance("httpfs", sourceInstance, "postgres", driver)
 	if err != nil {
 		return nil, fmt.Errorf("could not create migration instance: %v", err)
 	}

@@ -39,5 +39,7 @@ services:
       POSTGRES_PASSWORD: "password"
     networks:
       - docker_lnnet
+    ports:
+      - "5432:5432"
     volumes:
       -   thunderdrone_db:/var/lib/postgresql/data
