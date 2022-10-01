@@ -6,6 +6,7 @@ CREATE TABLE local_node (
   tls_data BYTEA NULL,
   macaroon_file_name TEXT NULL,
   macaroon_data BYTEA NULL,
+  pub_key TEXT NULL,
   created_on TIMESTAMPTZ NOT NULL,
   updated_on TIMESTAMPTZ NULL
 );

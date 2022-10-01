@@ -8,10 +8,10 @@ export default function Navbar(props) {
         </NavLink>
         <ul>
             <li className="nav-item">
-                <NavLink exact activeClassName="active" to="/">Dashboard</NavLink>
+                <NavLink end to="/">Dashboard</NavLink>
             </li>
             <li className="nav-item">
-                <NavLink exact activeClassName="active" to="/settings">Settings</NavLink>
+                <NavLink end to="/settings">Settings</NavLink>
             </li>
         </ul>
     </>
