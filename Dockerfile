@@ -22,4 +22,4 @@ RUN apk add --no-cache bash busybox-extras
 ENV GIN_MODE=release
 WORKDIR /app
 
-ENTRYPOINT ["./thunderdrone"]
+ENTRYPOINT ["./wait-for-it.sh", "thunderdrone-db:5432", "--", "./thunderdrone"]
