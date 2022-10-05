@@ -4,9 +4,9 @@ go 1.18
 
 require (
 	github.com/cockroachdb/errors v1.2.4
-	github.com/davecgh/go-spew v1.1.1
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.8.1
+	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.3
@@ -42,6 +42,7 @@ require (
 	github.com/containerd/containerd v1.6.6 // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.3-0.20220203105225-a9a7ef127534 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/lru v1.0.0 // indirect
 	github.com/dsnet/compress v0.0.1 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect

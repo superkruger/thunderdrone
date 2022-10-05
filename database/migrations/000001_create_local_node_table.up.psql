@@ -1,17 +1,11 @@
 CREATE TABLE local_node (
-  local_node_id SERIAL PRIMARY KEY,
-  implementation TEXT NOT NULL,
+  local_node_id TEXT PRIMARY KEY,
   grpc_address TEXT NULL,
   tls_file_name TEXT NULL,
   tls_data BYTEA NULL,
   macaroon_file_name TEXT NULL,
   macaroon_data BYTEA NULL,
   pub_key TEXT NULL,
-  created_on TIMESTAMPTZ NOT NULL,
-  updated_on TIMESTAMPTZ NULL
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NULL
 );
-
-INSERT INTO local_node (
-  implementation ,
-  created_on
-) values ('LND', now());
