@@ -8,10 +8,10 @@ import (
 	lnd "github.com/superkruger/thunderdrone/internal/lnd/subscribers"
 	"github.com/superkruger/thunderdrone/internal/repositories"
 	"github.com/superkruger/thunderdrone/internal/services"
-	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/grpclog"
 	"log"
+	"sync"
 )
 
 type LndClient interface {
@@ -40,6 +40,8 @@ func (lc *lndClient) Start() error {
 		return err
 	}
 
+	var wg = sync.WaitGroup{}
+
 	for _, localNode := range localNodes {
 
 		if (localNode.GRPCAddress == nil) || (localNode.TLSDataBytes == nil) || (localNode.MacaroonDataBytes == nil) {
@@ -55,12 +57,19 @@ func (lc *lndClient) Start() error {
 			return err
 		}
 
-		err = lc.subscribe(localNode, conn)
-		if err != nil {
-			log.Printf("Failed to subscribe to lnd: %v\n", err)
-			return err
-		}
+		wg.Add(1)
+		go func(context context.Context, localNode repositories.LocalNode, conn grpc.ClientConnInterface) {
+
+			err = lc.subscribe(localNode, conn)
+			if err != nil {
+				log.Printf("Failed to subscribe to lnd: %v\n", err)
+			}
+			log.Println("Node subscription done")
+			wg.Done()
+		}(lc.context, localNode, conn)
 	}
+
+	wg.Wait()
 
 	return nil
 }
@@ -68,37 +77,45 @@ func (lc *lndClient) Start() error {
 func (lc *lndClient) subscribe(localNode repositories.LocalNode, conn grpc.ClientConnInterface) error {
 
 	client := lnrpc.NewLightningClient(conn)
-	errs, ctx := errgroup.WithContext(lc.context)
 
 	// Initialise
-	err := lc.initLocalNode(ctx, client, localNode)
+	err := lc.initLocalNode(client, localNode)
 	if err != nil {
 		return err
 	}
 
-	for _, subscriber := range lc.allSubscribers(localNode, client) {
-		err = subscriber.Subscribe()
-		if err != nil {
-			return err
-		}
+	var wg = sync.WaitGroup{}
+
+	for _, subscriber := range lc.allSubscribers(localNode, client, lc.context) {
+		wg.Add(1)
+		go func(subscriber lnd.Subscriber) {
+
+			err = subscriber.Subscribe()
+			if err != nil {
+				log.Println("Could not start subscriber")
+			}
+			log.Println("Subscriber done")
+			wg.Done()
+		}(subscriber)
 	}
 
-	err = errs.Wait()
-	fmt.Println("Subscriptions all ended")
+	wg.Wait()
+
+	log.Println("Subscriptions all ended")
 
 	return err
 }
 
-func (lc *lndClient) allSubscribers(localNode repositories.LocalNode, client lnrpc.LightningClient) []lnd.Subscriber {
+func (lc *lndClient) allSubscribers(localNode repositories.LocalNode, client lnrpc.LightningClient, ctx context.Context) []lnd.Subscriber {
 	return []lnd.Subscriber{
-		lnd.NewNodeInfoScubscriber(client, localNode),
+		lnd.NewNodeInfoScubscriber(client, localNode, ctx),
 	}
 }
 
-func (lc *lndClient) initLocalNode(ctx context.Context, client lnrpc.LightningClient, localNode repositories.LocalNode) error {
+func (lc *lndClient) initLocalNode(client lnrpc.LightningClient, localNode repositories.LocalNode) error {
 
 	if localNode.PubKey == nil || len(*localNode.PubKey) == 0 {
-		pubKey, err := lc.addMissingLocalPubkey(localNode, client, ctx)
+		pubKey, err := lc.addMissingLocalPubkey(localNode, client)
 		if err != nil {
 			return errors.Wrapf(err, "addMissingLocalPubkey")
 		}
@@ -108,10 +125,10 @@ func (lc *lndClient) initLocalNode(ctx context.Context, client lnrpc.LightningCl
 	return nil
 }
 
-func (lc *lndClient) addMissingLocalPubkey(localNode repositories.LocalNode, client lnrpc.LightningClient, ctx context.Context) (r *string, err error) {
+func (lc *lndClient) addMissingLocalPubkey(localNode repositories.LocalNode, client lnrpc.LightningClient) (r *string, err error) {
 
 	// Get the public key of our node
-	ni, err := client.GetInfo(ctx, &lnrpc.GetInfoRequest{})
+	ni, err := client.GetInfo(lc.context, &lnrpc.GetInfoRequest{})
 	if err != nil {
 		return nil, errors.Wrapf(err, "client.GetNodeInfo(ctx, &lnrpc.GetInfoRequest{})")
 	}

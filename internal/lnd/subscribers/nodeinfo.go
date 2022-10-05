@@ -10,12 +10,14 @@ import (
 type nodeInfoSubscriber struct {
 	client    lnrpc.LightningClient
 	localNode repositories.LocalNode
+	context   context.Context
 }
 
-func NewNodeInfoScubscriber(client lnrpc.LightningClient, localNode repositories.LocalNode) Subscriber {
+func NewNodeInfoScubscriber(client lnrpc.LightningClient, localNode repositories.LocalNode, ctx context.Context) Subscriber {
 	return &nodeInfoSubscriber{
 		client:    client,
 		localNode: localNode,
+		context:   ctx,
 	}
 }
 
