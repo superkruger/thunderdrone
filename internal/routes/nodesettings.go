@@ -19,6 +19,15 @@ func NewNodeSettingsRoutes(nodeSettings services.NodeSettingsService) Routable {
 
 func (nsr *nodeSettingsRoutes) RegisterRoutes(r *gin.RouterGroup) {
 	r.POST("nodesettings", func(c *gin.Context) { nsr.UpdateNodeSettings(c) })
+	r.GET("nodesettings", func(c *gin.Context) { nsr.GetNodeSettings(c) })
+}
+
+func (nsr *nodeSettingsRoutes) GetNodeSettings(c *gin.Context) {
+	localNodes, err := nsr.nodeSettings.AllNodes()
+	if err != nil {
+		c.AbortWithError(500, err)
+	}
+	c.JSON(http.StatusOK, localNodes)
 }
 
 func (nsr *nodeSettingsRoutes) UpdateNodeSettings(c *gin.Context) {

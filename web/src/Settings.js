@@ -1,50 +1,40 @@
-import React, {useState} from "react";
-import Input from "./Input";
+import React, {useState, useEffect} from "react";
 import Button from "./Button";
 import useFetch from "./useFetch";
+import NodeSettings from "./NodeSettings";
 
 export default function Settings(props) {
-    const [certificate, setCertificate] = useState()
-    const [macaroon, setMacaroon] = useState()
-    const [grpcUrl, setGrpcUrl] = useState()
-    const {postFiles, loading} = useFetch("http://localhost:8080/api/")
+    const [localNodes, setLocalNodes] = useState([])
 
-    function handleFormSubmit(e) {
-        e.preventDefault()
+    const {get, loading} = useFetch("http://localhost:8080/api/")
 
-        const formData = new FormData();
-        formData.append("implementation", "LND");
-        formData.append("tlsFile", certificate);
-        formData.append("macaroonFile", macaroon);
-        formData.append("grpcAddress", grpcUrl);
-
-        postFiles("nodesettings", formData)
-            .then(r => console.log(r))
+    useEffect(() => {
+        get("nodesettings")
+            .then(d => setLocalNodes(d))
             .catch(e => console.log(e))
-    }
+    }, [])
 
-    function handleCertificateChanged(e) {
-        setCertificate(e.target.files[0])
-    }
-
-    function handleMacaroonChanged(e) {
-        setMacaroon(e.target.files[0])
-    }
-
-    function handleGrpcUrlChanged(e) {
-        setGrpcUrl(e.target.value)
+    function handleAddClicked() {
+        setLocalNodes(prev => [...prev, {}])
     }
 
     return <>
-        <form className="form" onSubmit={handleFormSubmit}>
-            <p>
-                Supply the necessary LND connection details
-            </p>
-            <Input placeholder="TLS Certificate" type="file" required onChange={handleCertificateChanged}/>
-            <Input placeholder="Macaroon" type="file" required onChange={handleMacaroonChanged}/>
-            <Input placeholder="GRPC Url (host:port)" type="text" required onChange={handleGrpcUrlChanged}/>
-            <Button type="submit">Save</Button>
-        </form>
+        <div className="settings-layout">
+            <h1>Local Node Settings</h1>
+            <p>Supply the necessary LND connection details</p>
+            <div className="node-settings-grid">
+                {
+                    localNodes.map(localNode => {
+                        return (
+                            <NodeSettings localNode={localNode}/>
+                        )
+                    })
+                }
+            </div>
+        </div>
+        <div>
+            <Button onClick={handleAddClicked}>Add Local Node</Button>
+        </div>
     </>
 }
 

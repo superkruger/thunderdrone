@@ -275,7 +275,7 @@ input:focus {
 }
 
 /* Pages */
-.home-layout {
+.dashboard-layout {
   display: grid;
   grid-template-columns: 1fr auto;
   place-items: center;
@@ -284,7 +284,7 @@ input:focus {
   padding-bottom: 40px;
 }
 
-.about-layout {
+.settings-layout {
   display: grid;
   grid-template-columns: 1fr auto;
   grid-gap: 20px;
@@ -292,54 +292,31 @@ input:focus {
   padding-bottom: 40px;
 }
 
-.products-layout {
-  padding-top: 40px;
-  padding-bottom: 40px;
-}
-
-.product-details-layout {
-  padding-top: 40px;
-  padding-bottom: 40px;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  grid-gap: 40px;
-}
-
 /* Products */
-.products-grid {
+.node-settings-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-gap: 25px;
 }
 
-.product {
-  background-color: white;
+.node-settings {
+  background-color: var(--neutral-3);
   padding: 15px 20px;
   border-radius: 25px;
   display: grid;
   grid-template-columns: auto 1fr auto;
 }
 
-.product-info {
+.node-settings-info {
   padding-left: 25px;
 }
 
-.product-checkout {
-  display: grid;
-  grid-template-rows: 1fr auto;
-  justify-items: end;
-}
-
-.product-delete {
+.node-settings-delete {
   background-color: white;
   padding: 5px 10px;
   color: var(--accent-1);
   border-color: var(--accent-2);
   font-size: 14px;
-}
-
-.product-image-container {
-  position: relative;
 }
 
 .product-quantity-container {
@@ -362,12 +339,6 @@ input:focus {
   place-items: center;
 }
 
-.product-image {
-  background-color: var(--neutral-5);
-  padding: 10px;
-  border-radius: 20px;
-  transition: transform 180ms ease-out;
-}
 .product:nth-child(2n):hover .product-image {
   transform: scale(1.01) rotateZ(2deg);
 }
@@ -378,13 +349,6 @@ input:focus {
 .product h3,
 .product p {
   margin: 0;
-}
-
-/* product details page */
-.product-details-image {
-  background-color: white;
-  padding: 10px;
-  border-radius: 20px;
 }
 
 .table {
@@ -413,20 +377,6 @@ input:focus {
   border: 1px solid white;
 }
 
-.table-cart {
-  text-align: center;
-}
-.table-cart tbody td:first-child {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  padding-left: 20px;
-}
-
-.table-nutrition tbody td:last-child {
-  text-align: center;
-}
-
 .table tbody tr:nth-child(2n) {
   background-color: white;
 }
@@ -438,11 +388,6 @@ input:focus {
 .th-product {
   text-align: left;
   padding-left: 25px;
-}
-
-.cart-highlight {
-  background-color: var(--accent-1);
-  color: white;
 }
 
 .form {

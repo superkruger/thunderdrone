@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/cockroachdb/errors"
 	"github.com/lightningnetwork/lnd/lnrpc"
+	"github.com/superkruger/thunderdrone/internal/interfaces"
 	lnd "github.com/superkruger/thunderdrone/internal/lnd/subscribers"
 	"github.com/superkruger/thunderdrone/internal/repositories"
 	"github.com/superkruger/thunderdrone/internal/services"
@@ -14,26 +15,31 @@ import (
 	"sync"
 )
 
-type LndClient interface {
-	Start() error
-}
-
 type lndClient struct {
 	context          context.Context
+	cancelContext    context.Context
+	cancel           context.CancelFunc
 	localNodePubKeys []string
 	nodeSettings     services.NodeSettingsService
 }
 
-func NewLndClient(context context.Context, nodeSettings services.NodeSettingsService) LndClient {
-	return &lndClient{
+func NewLndClient(context context.Context, nodeSettings services.NodeSettingsService) interfaces.LndClient {
+	client := lndClient{
 		context:      context,
 		nodeSettings: nodeSettings,
 	}
+
+	nodeSettings.SetLndClient(&client)
+
+	return &client
 }
 
 func (lc *lndClient) Start() error {
 
+	log.Println("Starting LND client")
+
 	grpclog.SetLoggerV2(grpclog.NewLoggerV2(info, warn, err))
+	lc.cancelContext, lc.cancel = context.WithCancel(lc.context)
 
 	localNodes, err := lc.nodeSettings.AllNodes()
 	if err != nil {
@@ -60,13 +66,13 @@ func (lc *lndClient) Start() error {
 		wg.Add(1)
 		go func(context context.Context, localNode repositories.LocalNode, conn grpc.ClientConnInterface) {
 
-			err = lc.subscribe(localNode, conn)
+			err = lc.subscribe(context, localNode, conn)
 			if err != nil {
 				log.Printf("Failed to subscribe to lnd: %v\n", err)
 			}
 			log.Println("Node subscription done")
 			wg.Done()
-		}(lc.context, localNode, conn)
+		}(lc.cancelContext, localNode, conn)
 	}
 
 	wg.Wait()
@@ -74,7 +80,19 @@ func (lc *lndClient) Start() error {
 	return nil
 }
 
-func (lc *lndClient) subscribe(localNode repositories.LocalNode, conn grpc.ClientConnInterface) error {
+func (lc *lndClient) Restart() error {
+	log.Println("Restarting LND client")
+	// signal shutdown
+	lc.cancel()
+	log.Println("Waiting for shutdown")
+	// wait for shutdown
+	<-lc.cancelContext.Done()
+
+	// Start
+	return lc.Start()
+}
+
+func (lc *lndClient) subscribe(ctx context.Context, localNode repositories.LocalNode, conn grpc.ClientConnInterface) error {
 
 	client := lnrpc.NewLightningClient(conn)
 
@@ -86,7 +104,7 @@ func (lc *lndClient) subscribe(localNode repositories.LocalNode, conn grpc.Clien
 
 	var wg = sync.WaitGroup{}
 
-	for _, subscriber := range lc.allSubscribers(localNode, client, lc.context) {
+	for _, subscriber := range lc.allSubscribers(localNode, client, ctx) {
 		wg.Add(1)
 		go func(subscriber lnd.Subscriber) {
 

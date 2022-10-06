@@ -2,9 +2,10 @@ package lnd
 
 import (
 	"context"
-	"fmt"
 	"github.com/lightningnetwork/lnd/lnrpc"
 	"github.com/superkruger/thunderdrone/internal/repositories"
+	"log"
+	"time"
 )
 
 type nodeInfoSubscriber struct {
@@ -23,14 +24,21 @@ func NewNodeInfoScubscriber(client lnrpc.LightningClient, localNode repositories
 
 func (nis *nodeInfoSubscriber) Subscribe() error {
 
-	ctx := context.Background()
-	getInfoResp, err := nis.client.GetInfo(ctx, &lnrpc.GetInfoRequest{})
+	for {
+		select {
+		case <-time.After(10 * time.Second):
+			{
+				getInfoResp, err := nis.client.GetInfo(nis.context, &lnrpc.GetInfoRequest{})
 
-	if err != nil {
-		return err
+				if err != nil {
+					return err
+				}
+
+				log.Println(getInfoResp)
+			}
+		case <-nis.context.Done(): // will execute if cancel func is called.
+			return nil
+		}
+
 	}
-
-	fmt.Println(getInfoResp)
-
-	return nil
 }

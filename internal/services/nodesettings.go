@@ -3,8 +3,10 @@ package services
 import (
 	"fmt"
 	"github.com/gofrs/uuid"
+	"github.com/superkruger/thunderdrone/internal/interfaces"
 	"github.com/superkruger/thunderdrone/internal/repositories"
 	"io"
+	"log"
 )
 
 type ConnectionDetails struct {
@@ -13,15 +15,9 @@ type ConnectionDetails struct {
 	MacaroonFileBytes []byte
 }
 
-type NodeSettingsService interface {
-	GetConnectionDetails() (ConnectionDetails, error)
-	SetConnectionDetails(node repositories.LocalNode) (repositories.LocalNode, error)
-	AllNodes() ([]repositories.LocalNode, error)
-	SetPubKey(localNode repositories.LocalNode) error
-}
-
 type nodeSettingsService struct {
-	repo repositories.NodeSettingsRepo
+	repo      repositories.NodeSettingsRepo
+	lndClient interfaces.LndClient
 }
 
 func NewNodeSettingsService(repo repositories.NodeSettingsRepo) NodeSettingsService {
@@ -62,20 +58,26 @@ func (nss *nodeSettingsService) SetConnectionDetails(localNode repositories.Loca
 	}
 	localNode.MacaroonDataBytes = macaroonData
 
-	if localNode.NodeId == nil {
+	if localNode.NodeId == "undefined" {
 		_uuid, err := uuid.NewV4()
 		if err != nil {
 			return localNode, err
 		}
 		uuidStr := _uuid.String()
-		localNode.NodeId = &uuidStr
+		localNode.NodeId = uuidStr
 
+		log.Printf("creating local node %v\n", localNode)
 		err = nss.repo.CreateLocalNode(localNode)
 		if err != nil {
 			return localNode, err
 		}
 	} else {
+		log.Printf("updating local node %v\n", localNode)
 		err = nss.repo.UpdateLocalNode(localNode)
+	}
+
+	if nss.lndClient != nil {
+		err = nss.lndClient.Restart()
 	}
 
 	return localNode, err
@@ -105,4 +107,8 @@ func (nss *nodeSettingsService) AllNodes() ([]repositories.LocalNode, error) {
 
 func (nss *nodeSettingsService) SetPubKey(localNode repositories.LocalNode) error {
 	return nss.repo.UpdatePubKey(localNode)
+}
+
+func (nss *nodeSettingsService) SetLndClient(client interfaces.LndClient) {
+	nss.lndClient = client
 }

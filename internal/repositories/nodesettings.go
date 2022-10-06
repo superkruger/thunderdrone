@@ -9,7 +9,7 @@ import (
 )
 
 type LocalNode struct {
-	NodeId            *string               `json:"localNodeId" form:"localNodeId" db:"local_node_id"`
+	NodeId            string                `json:"localNodeId" form:"localNodeId" db:"local_node_id"`
 	GRPCAddress       *string               `json:"grpcAddress" form:"grpcAddress" db:"grpc_address"`
 	TLSFileName       *string               `json:"tlsFileName" db:"tls_file_name"`
 	TLSFile           *multipart.FileHeader `form:"tlsFile"`
@@ -20,15 +20,6 @@ type LocalNode struct {
 	CreateAt          time.Time             `json:"createdAt" db:"created_at"`
 	UpdatedAt         *time.Time            `json:"updatedAt"  db:"updated_at"`
 	PubKey            *string               `db:"pub_key"`
-}
-
-type NodeSettingsRepo interface {
-	GetLocalNode(nodeId string) (LocalNode, error)
-	UpdateLocalNode(node LocalNode) error
-	CreateLocalNode(node LocalNode) error
-	DeleteLocalNode(nodeId string) error
-	GetLocalNodes() ([]LocalNode, error)
-	UpdatePubKey(node LocalNode) error
 }
 
 type nodeSettingsRepo struct {
@@ -69,7 +60,7 @@ UPDATE local_node SET
   tls_data = $3,
   macaroon_file_name = $4,
   macaroon_data = $5,
-  updated_on = $6
+  updated_at = $6
 WHERE 
   local_node_id = $7;
 `, node.GRPCAddress, node.TLSFileName, node.TLSDataBytes, node.MacaroonFileName, node.MacaroonDataBytes, time.Now().UTC(), node.NodeId)
@@ -81,7 +72,7 @@ WHERE
 
 func (nsr *nodeSettingsRepo) CreateLocalNode(node LocalNode) (err error) {
 	_, err = nsr.db.Exec(`
-INSERT into local_node ('local_node_id', 'grpc_address', 'tls_file_name', 'tls_data', 'macaroon_file_name', 'macaroon_data', 'created_at')
+INSERT into local_node (local_node_id, grpc_address, tls_file_name, tls_data, macaroon_file_name, macaroon_data, created_at)
 VALUES ($1, $2, $3, $4, $5, $6, $7);
 `, node.NodeId, node.GRPCAddress, node.TLSFileName, node.TLSDataBytes, node.MacaroonFileName, node.MacaroonDataBytes, time.Now().UTC())
 	if err != nil {
@@ -121,8 +112,8 @@ FROM local_node;`)
 func (nsr *nodeSettingsRepo) UpdatePubKey(node LocalNode) (err error) {
 	_, err = nsr.db.Exec(`
 UPDATE local_node SET
-  pub_key = $1
-  updated_on = $2
+  pub_key = $1,
+  updated_at = $2
 WHERE 
 	local_node_id = $3;
 `, node.PubKey, time.Now().UTC(), node.NodeId)
