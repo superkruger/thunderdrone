@@ -8,33 +8,33 @@ import (
 	"time"
 )
 
-type nodeInfoSubscriber struct {
+type peerInfoSubscriber struct {
 	client    lnrpc.LightningClient
 	localNode repositories.LocalNode
 	context   context.Context
 }
 
-func NewNodeInfoSubscriber(client lnrpc.LightningClient, localNode repositories.LocalNode, ctx context.Context) Subscriber {
-	return &nodeInfoSubscriber{
+func NewPeerInfoSubscriber(client lnrpc.LightningClient, localNode repositories.LocalNode, ctx context.Context) Subscriber {
+	return &peerInfoSubscriber{
 		client:    client,
 		localNode: localNode,
 		context:   ctx,
 	}
 }
 
-func (s *nodeInfoSubscriber) Subscribe() error {
+func (s *peerInfoSubscriber) Subscribe() error {
 
 	for {
 		select {
 		case <-time.After(10 * time.Second):
 			{
-				getInfoResp, err := s.client.GetInfo(s.context, &lnrpc.GetInfoRequest{})
+				peers, err := s.client.ListPeers(s.context, &lnrpc.ListPeersRequest{})
 
 				if err != nil {
 					return err
 				}
 
-				log.Println("Info", getInfoResp)
+				log.Println("Peers", peers)
 			}
 		case <-s.context.Done(): // will execute if cancel func is called.
 			return nil

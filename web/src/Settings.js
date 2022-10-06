@@ -26,7 +26,7 @@ export default function Settings(props) {
                 {
                     localNodes.map(localNode => {
                         return (
-                            <NodeSettings localNode={localNode}/>
+                            <NodeSettings localNode={localNode} key={localNode.nodeId}/>
                         )
                     })
                 }

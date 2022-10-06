@@ -126,7 +126,8 @@ func (lc *lndClient) subscribe(ctx context.Context, localNode repositories.Local
 
 func (lc *lndClient) allSubscribers(localNode repositories.LocalNode, client lnrpc.LightningClient, ctx context.Context) []lnd.Subscriber {
 	return []lnd.Subscriber{
-		lnd.NewNodeInfoScubscriber(client, localNode, ctx),
+		lnd.NewNodeInfoSubscriber(client, localNode, ctx),
+		lnd.NewPeerInfoSubscriber(client, localNode, ctx),
 	}
 }
 
