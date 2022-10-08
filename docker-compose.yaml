@@ -26,10 +26,11 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./web:/app:delegated
-      - /app/node_modules
+      - ./web:/app
+      - ./web/src:/app/src
     environment:
       - WATCHPACK_POLLING=true
+
     depends_on:
       - "thunderdrone-app"
   thunderdrone-db:

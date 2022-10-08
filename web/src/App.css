@@ -3,29 +3,30 @@
   --black: #000;
 
   /* Primary colors*/
-  --primary-1: #2b8379;
-  --primary-2: #19a596;
-  --primary-3: #7fd1c7;
-  --primary-4: #7fd1c7;
-  --primary-5: #d0f3ef;
+  --primary-1: #832b40;
+  --primary-2: #a5192e;
+  --primary-3: #be6072;
+  --primary-4: #c59198;
+  --primary-5: #f3d0d4;
 
   /* Neutral colors */
-  --neutral-1: #2c2c2c;
-  --neutral-2: #434343;
-  --neutral-3: #94868b;
-  --neutral-4: #d9cfd3;
-  --neutral-5: #f2ecee;
+  --neutral-1: #2a2727;
+  --neutral-2: #414246;
+  --neutral-3: #868b94;
+  --neutral-4: #c7cbd3;
+  --neutral-5: #e3eaef;
 
   /* Accent-blue colors */
-  --accent-1: #970e3d;
-  --accent-2: #c43464;
-  --accent-3: #de7699;
-  --accent-4: #e6c3ce;
-  --accent-5: #fff2f7;
+  --accent-1: #0e3e97;
+  --accent-2: #3472c4;
+  --accent-3: #768bde;
+  --accent-4: #c3d5e6;
+  --accent-5: #f2f8ff;
 }
 
 body {
   background-color: var(--neutral-5);
+  font-family: Arial;
 }
 
 h1 {

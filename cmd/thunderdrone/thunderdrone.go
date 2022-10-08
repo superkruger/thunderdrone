@@ -13,13 +13,10 @@ import (
 	"os"
 	"os/signal"
 	"sync"
-	"time"
 )
 
 func main() {
 	log.Println("Thunderdrone starting...")
-
-	time.Sleep(5 * time.Second)
 
 	db, err := database.PgConnect("thunderdrone_db", "thunderdrone", "password", "thunderdrone-db", "5432")
 	if err != nil {
